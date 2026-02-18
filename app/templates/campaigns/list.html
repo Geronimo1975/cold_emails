@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Campaigns{% endblock %}
+{% block header %}Campaigns{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <p class="text-gray-500 text-sm">{{ campaigns|length }} campaign{{ campaigns|length|pluralize }}</p>
+    <a href="/campaigns/add/" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+        + New Campaign
+    </a>
+</div>
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Name</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Status</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Lead List</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Sent</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Open Rate</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Reply Rate</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for campaign in campaigns %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 font-medium text-gray-900">
+                    <a href="/campaigns/{{ campaign.pk }}/" class="hover:text-blue-600">{{ campaign.name }}</a>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if campaign.status == 'active' %}bg-green-100 text-green-800
+                        {% elif campaign.status == 'paused' %}bg-yellow-100 text-yellow-800
+                        {% elif campaign.status == 'completed' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ campaign.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ campaign.lead_list.name }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ campaign.emails_sent }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ campaign.open_rate }}%</td>
+                <td class="px-6 py-4 text-gray-600">{{ campaign.reply_rate }}%</td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                        {% if campaign.status == 'active' %}
+                        <a href="/campaigns/{{ campaign.pk }}/pause/" class="text-yellow-600 hover:underline">Pause</a>
+                        {% else %}
+                        <a href="/campaigns/{{ campaign.pk }}/start/" class="text-green-600 hover:underline">Start</a>
+                        {% endif %}
+                        <a href="/campaigns/{{ campaign.pk }}/edit/" class="text-blue-600 hover:underline">Edit</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="px-6 py-12 text-center text-gray-400">No campaigns yet. <a href="/campaigns/add/" class="text-blue-600 hover:underline">Create your first campaign</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

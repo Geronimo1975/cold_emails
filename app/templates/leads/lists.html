@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Lead Lists{% endblock %}
+{% block header %}Lead Lists{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <p class="text-gray-500 text-sm">{{ lead_lists|length }} list{{ lead_lists|length|pluralize }}</p>
+    <a href="/leads/lists/add/" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">+ New List</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for lst in lead_lists %}
+    <div class="bg-white rounded-xl shadow-sm p-5">
+        <h3 class="font-semibold text-gray-900 mb-1">{{ lst.name }}</h3>
+        <p class="text-gray-500 text-sm mb-3">{{ lst.description }}</p>
+        <p class="text-2xl font-bold text-blue-600">{{ lst.count }} <span class="text-sm font-normal text-gray-500">leads</span></p>
+        <a href="/leads/?lead_list={{ lst.pk }}" class="text-sm text-blue-600 hover:underline mt-2 block">View leads</a>
+    </div>
+    {% empty %}
+    <div class="col-span-3 text-center py-12 text-gray-400">No lead lists yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

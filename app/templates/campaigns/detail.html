@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{{ campaign.name }}{% endblock %}
+{% block header %}{{ campaign.name }}{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if campaign.status == 'active' %}bg-green-100 text-green-800
+            {% elif campaign.status == 'paused' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-gray-100 text-gray-600{% endif %}">
+            {{ campaign.get_status_display }}
+        </span>
+    </div>
+    <div class="flex gap-2">
+        {% if campaign.status == 'active' %}
+        <a href="/campaigns/{{ campaign.pk }}/pause/" class="bg-yellow-50 border border-yellow-300 text-yellow-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-100 transition">Pause</a>
+        {% elif campaign.status != 'completed' %}
+        <a href="/campaigns/{{ campaign.pk }}/start/" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition">Start</a>
+        {% endif %}
+        <a href="/campaigns/{{ campaign.pk }}/edit/" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Edit</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-5 shadow-sm text-center">
+        <p class="text-2xl font-bold text-gray-900">{{ stats.total_leads }}</p>
+        <p class="text-xs text-gray-500 mt-1">Total Leads</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm text-center">
+        <p class="text-2xl font-bold text-blue-600">{{ stats.sent }}</p>
+        <p class="text-xs text-gray-500 mt-1">Emails Sent</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm text-center">
+        <p class="text-2xl font-bold text-green-600">{{ stats.open_rate }}%</p>
+        <p class="text-xs text-gray-500 mt-1">Open Rate</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm text-center">
+        <p class="text-2xl font-bold text-purple-600">{{ stats.reply_rate }}%</p>
+        <p class="text-xs text-gray-500 mt-1">Reply Rate</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Email Sequence -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Email Sequence</h2>
+            <a href="/campaigns/{{ campaign.pk }}/steps/add/" class="text-sm text-blue-600 hover:underline">+ Add Step</a>
+        </div>
+        <div class="space-y-3">
+            {% for step in steps %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2">{{ step.step_number }}</span>
+                        <span class="font-medium text-gray-900 text-sm">{{ step.subject_template|truncatechars:60 }}</span>
+                    </div>
+                    <a href="/campaigns/{{ campaign.pk }}/steps/{{ step.pk }}/edit/" class="text-xs text-blue-600 hover:underline">Edit</a>
+                </div>
+                {% if step.delay_days > 0 %}
+                <p class="text-xs text-gray-400 mt-2 ml-8">Delay: +{{ step.delay_days }} day{{ step.delay_days|pluralize }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-gray-400 text-sm text-center py-4">No steps yet. <a href="/campaigns/{{ campaign.pk }}/steps/add/" class="text-blue-600 hover:underline">Add first step</a></p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Email Logs -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Emails</h2>
+        <div class="space-y-2">
+            {% for log in recent_logs %}
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                    <p class="text-sm font-medium text-gray-900">{{ log.lead.business_name }}</p>
+                    <p class="text-xs text-gray-400">{{ log.lead.email }}</p>
+                </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                    {% if log.status == 'sent' or log.status == 'delivered' %}bg-blue-100 text-blue-700
+                    {% elif log.status == 'opened' %}bg-green-100 text-green-700
+                    {% elif log.status == 'replied' %}bg-purple-100 text-purple-700
+                    {% elif log.status == 'bounced' %}bg-red-100 text-red-700
+                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                    {{ log.status }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 text-sm text-center py-4">No emails sent yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

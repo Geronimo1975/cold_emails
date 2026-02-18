@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load sending_extras %}
+{% block title %}SMTP Accounts{% endblock %}
+{% block header %}SMTP Accounts{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <p class="text-gray-500 text-sm">{{ accounts|length }} account{{ accounts|length|pluralize }}</p>
+    <a href="/sending/accounts/add/" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">+ Add Account</a>
+</div>
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Email</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">SMTP Host</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Status</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Warmup</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Sent Today</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Limit</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for account in accounts %}
+            {% with warmup=warmup_statuses|dictlookup:account.pk %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 font-medium text-gray-900">{{ account.email_address }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ account.smtp_host }}:{{ account.smtp_port }}</td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if account.health_status == 'healthy' %}bg-green-100 text-green-700
+                        {% elif account.health_status == 'warning' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ account.health_status }}
+                    </span>
+                    {% if not account.is_active %}<span class="ml-1 text-xs text-gray-400">(disabled)</span>{% endif %}
+                </td>
+                <td class="px-6 py-4 text-gray-600 text-xs">
+                    {% if account.warmup_mode %}
+                    Day {{ account.warmup_day }} — {{ account.effective_daily_limit }}/day
+                    {% else %}
+                    <span class="text-green-600">Complete</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ account.sent_today }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ account.effective_daily_limit }}</td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                        <button onclick="testAccount({{ account.pk }}, this)" class="text-blue-600 hover:underline">Test</button>
+                        <a href="/sending/accounts/{{ account.pk }}/edit/" class="text-gray-600 hover:underline">Edit</a>
+                        <a href="/sending/accounts/{{ account.pk }}/delete/" class="text-red-600 hover:underline">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endwith %}
+            {% empty %}
+            <tr><td colspan="7" class="px-6 py-12 text-center text-gray-400">No SMTP accounts. <a href="/sending/accounts/add/" class="text-blue-600 hover:underline">Add one</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+async function testAccount(pk, btn) {
+    btn.textContent = 'Testing...';
+    btn.disabled = true;
+    const res = await fetch(`/sending/accounts/${pk}/test/`);
+    const data = await res.json();
+    btn.textContent = 'Test';
+    btn.disabled = false;
+    alert(data.success ? '✓ ' + data.message : '✗ ' + data.error);
+}
+</script>
+{% endblock %}

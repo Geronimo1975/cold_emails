@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.business_name }}{% endblock %}
+{% block header %}{{ lead.business_name }}{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1 space-y-4">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Contact Info</h2>
+                <a href="/leads/{{ lead.pk }}/edit/" class="text-sm text-blue-600 hover:underline">Edit</a>
+            </div>
+            <dl class="space-y-3 text-sm">
+                <div><dt class="text-gray-500">Email</dt><dd class="font-medium">{{ lead.email }}</dd></div>
+                {% if lead.phone %}<div><dt class="text-gray-500">Phone</dt><dd>{{ lead.phone }}</dd></div>{% endif %}
+                {% if lead.website %}<div><dt class="text-gray-500">Website</dt><dd><a href="{{ lead.website }}" target="_blank" class="text-blue-600 hover:underline">{{ lead.website }}</a></dd></div>{% endif %}
+                {% if lead.city %}<div><dt class="text-gray-500">City</dt><dd>{{ lead.city }} {{ lead.postal_code }}</dd></div>{% endif %}
+                {% if lead.contact_person %}<div><dt class="text-gray-500">Contact Person</dt><dd>{{ lead.contact_person }}{% if lead.position %} — {{ lead.position }}{% endif %}</dd></div>{% endif %}
+                <div><dt class="text-gray-500">Industry</dt><dd>{{ lead.get_industry_display }}</dd></div>
+                <div><dt class="text-gray-500">Source</dt><dd>{{ lead.get_source_display }}</dd></div>
+                <div><dt class="text-gray-500">Status</dt><dd><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ lead.get_status_display }}</span></dd></div>
+                {% if lead.unsubscribed %}<div><dt class="text-gray-500">Unsubscribed</dt><dd class="text-red-600">{{ lead.unsubscribed_at|date:"Y-m-d" }}</dd></div>{% endif %}
+            </dl>
+        </div>
+    </div>
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Email History</h2>
+            <div class="space-y-2">
+                {% for log in email_logs %}
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ log.subject|truncatechars:60 }}</p>
+                        <p class="text-gray-400 text-xs">{{ log.campaign.name }} — Step {{ log.sequence_step.step_number }} — {{ log.queued_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if log.status == 'opened' %}bg-green-100 text-green-700
+                        {% elif log.status == 'replied' %}bg-purple-100 text-purple-700
+                        {% elif log.status == 'bounced' %}bg-red-100 text-red-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ log.status }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-gray-400 text-sm text-center py-6">No emails sent to this lead yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

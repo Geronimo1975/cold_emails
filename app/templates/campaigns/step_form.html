@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{% if step %}Edit Step{% else %}Add Step{% endif %}{% endblock %}
+{% block header %}{% if step %}Edit Step{{ step.step_number }}{% else %}Add Sequence Step{% endif %}{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <p class="text-sm text-gray-500 mb-6">Campaign: <span class="font-medium text-gray-900">{{ campaign.name }}</span></p>
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Step Number</label>
+                <input type="number" name="step_number" value="{{ step.step_number|default:'1' }}" min="1" class="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Subject Template</label>
+                <input type="text" name="subject_template" value="{{ step.subject_template|default:'' }}"
+                    placeholder="e.g. Gebäudereinigung für {{ '{{' }}business_name{{ '}}' }}"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <p class="text-xs text-gray-400 mt-1">Available variables: {{ '{{' }}business_name{{ '}}' }}, {{ '{{' }}city{{ '}}' }}, {{ '{{' }}industry_text{{ '}}' }}, {{ '{{' }}contact_person{{ '}}' }}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Body (HTML, Jinja2)</label>
+                <textarea name="body_template" rows="12" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono">{{ step.body_template|default:'' }}</textarea>
+                <p class="text-xs text-gray-400 mt-1">DSGVO footer and unsubscribe link will be appended automatically.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Delay (days after previous step)</label>
+                <input type="number" name="delay_days" value="{{ step.delay_days|default:'0' }}" min="0" class="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Save Step</button>
+                <a href="/campaigns/{{ campaign.pk }}/" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

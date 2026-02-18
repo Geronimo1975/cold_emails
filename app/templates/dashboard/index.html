@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Dashboard{% endblock %}
+{% block content %}
+<!-- Stats grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <p class="text-sm font-medium text-gray-500">Active Campaigns</p>
+        <p class="text-3xl font-bold text-gray-900 mt-2">{{ active_campaigns }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <p class="text-sm font-medium text-gray-500">Sent Today</p>
+        <p class="text-3xl font-bold text-blue-600 mt-2">{{ sent_today }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <p class="text-sm font-medium text-gray-500">Open Rate</p>
+        <p class="text-3xl font-bold text-green-600 mt-2">{{ open_rate }}%</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <p class="text-sm font-medium text-gray-500">Reply Rate</p>
+        <p class="text-3xl font-bold text-purple-600 mt-2">{{ reply_rate }}%</p>
+    </div>
+</div>
+
+<!-- Chart + Recent campaigns -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Emails Sent — Last 7 Days</h2>
+        <canvas id="sentChart" height="100"></canvas>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Recent Campaigns</h2>
+            <a href="/campaigns/add/" class="text-sm text-blue-600 hover:underline">+ New</a>
+        </div>
+        <div class="space-y-3">
+            {% for campaign in recent_campaigns %}
+            <a href="/campaigns/{{ campaign.pk }}/" class="block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                <p class="font-medium text-gray-900 text-sm">{{ campaign.name }}</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if campaign.status == 'active' %}bg-green-100 text-green-800
+                        {% elif campaign.status == 'paused' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ campaign.status }}
+                    </span>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-gray-500 text-sm">No campaigns yet. <a href="/campaigns/add/" class="text-blue-600 hover:underline">Create one</a></p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const labels = [{% for d in daily_sent %}"{{ d.date|date:'D d' }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+const data = [{% for d in daily_sent %}{{ d.count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+new Chart(document.getElementById('sentChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Emails Sent',
+            data,
+            backgroundColor: 'rgba(59,130,246,0.7)',
+            borderRadius: 4,
+        }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+</script>
+{% endblock %}

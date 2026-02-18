@@ -1,0 +1,7 @@
+requests==2.32.3
+email-validator==2.2.0
+dnspython==2.7.0
+aiodns==3.2.0
+aiosmtplib==3.0.2
+tqdm==4.67.1
+python-dotenv==1.0.1

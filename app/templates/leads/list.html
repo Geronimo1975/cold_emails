@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+{% block header %}Leads{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <p class="text-gray-500 text-sm">{{ total_count }} total leads</p>
+    <div class="flex gap-2">
+        <a href="/leads/import/" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Import CSV</a>
+        <a href="/leads/export/" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Export CSV</a>
+        <a href="/leads/add/" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">+ Add Lead</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Search name</label>
+            <input type="text" name="business_name" value="{{ request.GET.business_name }}" placeholder="Business name..."
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Search email</label>
+            <input type="text" name="email" value="{{ request.GET.email }}" placeholder="Email..."
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Status</label>
+            <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <option value="">All statuses</option>
+                <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>New</option>
+                <option value="contacted" {% if request.GET.status == 'contacted' %}selected{% endif %}>Contacted</option>
+                <option value="replied" {% if request.GET.status == 'replied' %}selected{% endif %}>Replied</option>
+                <option value="interested" {% if request.GET.status == 'interested' %}selected{% endif %}>Interested</option>
+                <option value="bounced" {% if request.GET.status == 'bounced' %}selected{% endif %}>Bounced</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Industry</label>
+            <select name="industry" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <option value="">All industries</option>
+                <option value="hausverwaltung">Hausverwaltung</option>
+                <option value="immobilien">Immobilien</option>
+                <option value="facility_management">Facility Management</option>
+                <option value="gewerbe">Gewerbe</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Filter</button>
+        <a href="/leads/" class="text-gray-500 text-sm py-2 hover:underline">Clear</a>
+    </form>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Business</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Email</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">City</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Industry</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Status</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-500">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for lead in leads %}
+            <tr class="hover:bg-gray-50 {% if lead.unsubscribed %}opacity-50{% endif %}">
+                <td class="px-6 py-3 font-medium text-gray-900">
+                    <a href="/leads/{{ lead.pk }}/" class="hover:text-blue-600">{{ lead.business_name|truncatechars:40 }}</a>
+                </td>
+                <td class="px-6 py-3 text-gray-600">{{ lead.email }}</td>
+                <td class="px-6 py-3 text-gray-600">{{ lead.city }}</td>
+                <td class="px-6 py-3 text-gray-600">{{ lead.get_industry_display }}</td>
+                <td class="px-6 py-3">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if lead.status == 'new' %}bg-gray-100 text-gray-700
+                        {% elif lead.status == 'contacted' %}bg-blue-100 text-blue-700
+                        {% elif lead.status == 'replied' %}bg-purple-100 text-purple-700
+                        {% elif lead.status == 'interested' %}bg-green-100 text-green-700
+                        {% elif lead.status == 'bounced' %}bg-red-100 text-red-700
+                        {% elif lead.status == 'unsubscribed' %}bg-orange-100 text-orange-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ lead.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-3">
+                    <a href="/leads/{{ lead.pk }}/edit/" class="text-blue-600 hover:underline">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="px-6 py-12 text-center text-gray-400">No leads found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if is_paginated %}
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+        <p class="text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="text-blue-600 text-sm hover:underline">Previous</a>{% endif %}
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="text-blue-600 text-sm hover:underline">Next</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
