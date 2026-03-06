@@ -18,3 +18,5 @@ media/
 celerybeat-schedule
 celerybeat.pid
 app_creds.txt
+
+*.csv
